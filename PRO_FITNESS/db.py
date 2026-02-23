@@ -15,7 +15,7 @@ DB_CONFIG = {
 
 def get_connection():
     """ Get a connection """
-    return connect(DB_CONFIG)
+    return connect(**DB_CONFIG)
 
 
 
@@ -30,7 +30,6 @@ def execute(query, params=None, fetch=False):
     Returns: 
         List of rows if fethc=True, else None
     """
-
     try:
         with get_connection() as connect:
             with connect.cursor(dictionary=True) as cursor:
@@ -41,7 +40,7 @@ def execute(query, params=None, fetch=False):
                 
                 connect.commit()
                 print(f'Query OK - rows affected: {cursor.rowcount}')
-                return None
+                return cursor.lastrowid
     except Error as e:
         print(f"Database Error: {e}")
         raise
