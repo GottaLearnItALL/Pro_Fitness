@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import users
+from routes import users, membership, user_membership, sessions, attendance
 
 app = FastAPI()
 
@@ -9,6 +9,33 @@ app.include_router(
     prefix='/api',
     tags=['users']
 )
+
+
+app.include_router(
+    membership.router,
+    prefix='/api',
+    tags=['membership_plans']
+)
+
+app.include_router(
+    user_membership.router,
+    prefix='/api',
+    tags=['user_membership']
+)
+
+app.include_router(
+    sessions.router,
+    prefix='/api',
+    tags=['sessions']
+)
+
+app.include_router(
+    attendance.router,
+    prefix='/api',
+    tags=['attendance']
+)
+
+
 
 @app.get("/")
 def read_root():

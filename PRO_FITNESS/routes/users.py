@@ -11,8 +11,14 @@ class User(BaseModel):
     phone: str
     address: str
     role: str
-    is_active: bool
-    created_at: datetime
+    
+
+class UserUpdate(BaseModel):
+    f_name: str | None = None
+    l_name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 router = APIRouter()
@@ -21,32 +27,70 @@ router = APIRouter()
 
 @router.get('/users/', tags=['users'])
 def get_users():
-    query = "SELECT * FROM USERS"
+    print("Entering get")
+    query = "SELECT * FROM users"
     try:
         response = execute(query=query,fetch=True)
         if response:
-            for _ in response:
-                print(_)
+            return {"message": "User data fetched successfully!", "Data": response}
         else:
             return {"message": "Database is Empty!"}
-
-
     except Exception as e:
         print(f'Exception {e} was caught')
-        
-
+       
+ 
 @router.post('/users/', tags=['users'])
 def create_users(user: User):
     print("Entering post")
     query = """ INSERT INTO users 
-    (f_name, l_name, email, phone, address, role, is_active, created_at)
-    VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+    (first_name, last_name, email, phone, address, role)
+    VALUES (%s,%s,%s,%s,%s,%s)
     """
     try:
-        response = execute(query=query, params=(user.f_name,user.l_name,user.email,user.phone,user.address,user.role,user.is_active,user.created_at))
+        response = execute(query=query, params=(user.f_name,user.l_name,user.email,user.phone,user.address,user.role))
         print(response)
-        return {"message": f"Item {user.role} added to the DataBase!"}
+        return {"message": f"Item {user.role} added to the DataBase!",'id': response}
     except Exception as e:
-        return response
-        #return(f"Error: Invalid input data. Details: {e}")
-    
+        return(f"Error: Invalid input data. Details: {e}")
+
+
+@router.put('/users/{user_id}', tags=['users'])
+def update_user(user_id: int, user: UserUpdate):
+    print("Entering put")
+    fields = []
+    params = []
+    if user.f_name:
+        fields.append("first_name = %s")
+        params.append(user.f_name)
+    if user.l_name:
+        fields.append("last_name = %s")
+        params.append(user.l_name)
+    if user.email:
+        fields.append("email = %s")
+        params.append(user.email)
+    if user.phone:
+        fields.append("phone = %s")
+        params.append(user.phone)
+    if user.address:
+        fields.append("address = %s")
+        params.append(user.address)
+    params.append(user_id)
+    query = f"UPDATE users SET {', '.join(fields)} WHERE id = %s"
+    try:
+        response = execute(query=query, params=params)
+        print(response)
+        return{'messages': 'User updated succesfully'}
+    except Exception as e:
+        return(f"Error: Invalid input data. Details: {e}")
+
+
+@router.delete('/users/{user_id}', tags=['users'])
+def delete_user(user_id: int):
+    print("Entering Delete")
+    query = f"DELETE FROM users WHERE id = %s"
+
+    try:
+        response = execute(query=query, params=(user_id,))
+        return {'messages': 'User deleted succesfully'}
+    except Exception as e:
+        return(f"Error: Invalid input data. Details: {e}")
