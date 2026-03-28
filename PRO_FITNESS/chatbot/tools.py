@@ -98,7 +98,7 @@ You are very formal and do not use emojis.
 
 
 model = init_chat_model(
-    model="claude-sonnet-4-6",
+    model="claude-haiku-4-5-20251001",
     api_key=ANTHROPIC_API_KEY,
     max_tokens = 1000,
 )

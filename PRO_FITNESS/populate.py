@@ -14,6 +14,7 @@ with get_connection() as conn:
         cursor.execute("TRUNCATE TABLE memberships")
         cursor.execute("TRUNCATE TABLE membership_plans")
         cursor.execute("TRUNCATE TABLE users")
+        cursor.execute("TRUNCATE TABLE trainer_availability")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
 
@@ -49,6 +50,30 @@ client_ids = user_ids[4:9]   # Emily, Ryan, Olivia, Priya, Tyler
 
 print(f"\nTrainer IDs: {trainer_ids}")
 print(f"Client IDs: {client_ids}\n")
+
+
+# 2. Trainer Availability
+availability = [
+    # Marcus (trainer_ids[0]) — Mon, Wed, Fri mornings
+    {"trainer_id": trainer_ids[0], "day_of_week": "monday", "start_time": "09:00:00", "end_time": "13:00:00"},
+    {"trainer_id": trainer_ids[0], "day_of_week": "wednesday", "start_time": "09:00:00", "end_time": "13:00:00"},
+    {"trainer_id": trainer_ids[0], "day_of_week": "friday", "start_time": "09:00:00", "end_time": "13:00:00"},
+    # Sofia (trainer_ids[1]) — Tue, Thu, Sat afternoons
+    {"trainer_id": trainer_ids[1], "day_of_week": "tuesday", "start_time": "14:00:00", "end_time": "19:00:00"},
+    {"trainer_id": trainer_ids[1], "day_of_week": "thursday", "start_time": "14:00:00", "end_time": "19:00:00"},
+    {"trainer_id": trainer_ids[1], "day_of_week": "saturday", "start_time": "10:00:00", "end_time": "15:00:00"},
+    # James (trainer_ids[2]) — Mon-Fri evenings
+    {"trainer_id": trainer_ids[2], "day_of_week": "monday", "start_time": "16:00:00", "end_time": "21:00:00"},
+    {"trainer_id": trainer_ids[2], "day_of_week": "tuesday", "start_time": "16:00:00", "end_time": "21:00:00"},
+    {"trainer_id": trainer_ids[2], "day_of_week": "wednesday", "start_time": "16:00:00", "end_time": "21:00:00"},
+    {"trainer_id": trainer_ids[2], "day_of_week": "thursday", "start_time": "16:00:00", "end_time": "21:00:00"},
+    {"trainer_id": trainer_ids[2], "day_of_week": "friday", "start_time": "16:00:00", "end_time": "21:00:00"},
+]
+
+for a in availability:
+    res = requests.post(f"{BASE_URL}/trainer_availability", json=a)
+    print(f"Availability: trainer {a['trainer_id']} — {a['day_of_week']} {a['start_time']}-{a['end_time']}")
+
 
 # ── Step 2: Membership Plans ──
 plans = [
@@ -156,8 +181,10 @@ for s_id, u_id, role, check_in, status in completed_sessions:
     data = res.json()
     print(f"Attendance: session {s_id}, user {u_id} ({role}) → {status}")
 
+
 print("\nSeeding complete!")
 print(f"   Users: {len(users)}")
+print(f"   Trainer_availability: {len(availability)}")
 print(f"   Plans: {len(plans)}")
 print(f"   Memberships: {len(memberships)}")
 print(f"   Sessions: {len(sessions)}")
