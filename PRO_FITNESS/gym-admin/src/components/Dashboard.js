@@ -12,8 +12,6 @@ function Dashboard({ setActiveTab }) {
         const allUsers = uRes.data?.Data || [];
         setUsers(allUsers);
 
-        // The sessions endpoint returns them inside a message string — parse what we can
-        // If the API returns structured data, use it; otherwise fallback
         const raw = sRes.data;
         if (Array.isArray(raw?.Data)) {
           setSessions(raw.Data);

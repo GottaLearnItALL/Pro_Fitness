@@ -20,7 +20,7 @@ def get_memberships():
     query = "SELECT * FROM memberships"
     try:
         response = execute(query=query, fetch=True)
-        return {'message': f'Here are the membership plans: {response[0]}'}
+        return {'message': 'Memberships fetched successfully', 'Data': response}
     except Exception as e:
         return {'message': f'Exception {e} occured'}
 

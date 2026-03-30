@@ -24,10 +24,7 @@ def get_trainer_availability():
                FROM trainer_availability"""
     try:
         response = execute(query=query, fetch=True)
-        if response:
-            return (f'Trainer availability fetched succesfully {response}')
-        else:
-            print(f'Failed to fethc trainer availability')
+        return {'message': 'Trainer availability fetched successfully', 'Data': response or []}
     except Exception as e:
         print(f"Exception {e} occured")
 

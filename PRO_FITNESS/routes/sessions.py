@@ -22,7 +22,7 @@ def get_sessions():
     query = "SELECT * FROM sessions"
     try:
         response = execute(query=query, fetch=True)
-        return {'message': f'Here are all the sessions: {response[0]}'}
+        return {'message': 'Sessions fetched successfully', 'Data': response}
     except Exception as e:
         return {'message': f'Exception {e} occured'}
 
