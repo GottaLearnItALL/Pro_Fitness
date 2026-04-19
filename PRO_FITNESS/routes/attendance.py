@@ -35,15 +35,22 @@ def post_attendance(attendance:Attendance):
 
     try:
         response = execute(query=query, params=(attendance.session_id, attendance.user_id, attendance.role, attendance.check_in, attendance.status))
-        sessions = execute(query="SELECT sessions_remaining FROM memberhsip",fetch=True)
-        updated_session = sessions[0]['sessions_limit']
-        updated_session -= 1
-        response = execute(query="UPDATE memberhsips SET sessions_limit = %s WHERE client_id = %s", params=(pdated_session, attendance.user_id))
 
+        if attendance.role == 'client':
+            membership = execute(
+                query="SELECT id, sessions_remaining FROM memberships WHERE client_id = %s AND status = 'active'",
+                params=(attendance.user_id,), fetch=True
+            )
+            if membership and membership[0]['sessions_remaining'] is not None:
+                updated_sessions = membership[0]['sessions_remaining'] - 1
+                execute(
+                    query="UPDATE memberships SET sessions_remaining = %s WHERE id = %s",
+                    params=(updated_sessions, membership[0]['id'])
+                )
 
-        return {'message': f'Attendance Recorded','id': response}
+        return {'message': 'Attendance Recorded', 'id': response}
 
     except Exception as e:
-        return {'message': 'Error {e} occured'}
+        return {'message': f'Error {e} occurred'}
 
 

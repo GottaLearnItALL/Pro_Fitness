@@ -14,6 +14,10 @@ class Sessions(BaseModel):
     duration_min:int
     notes: str
 
+class SessionUpdate(BaseModel):
+    status: str | None = None
+    notes: str | None = None
+
 
 
 @router.get('/sessions', tags=['sessions'])
@@ -41,3 +45,23 @@ def post_sessions(sessions:Sessions):
 
     except Exception as e:
         return {'message': 'Error {e} occured'}
+
+
+@router.put('/sessions/{session_id}', tags=['sessions'])
+def update_session(session_id: int, session: SessionUpdate):
+    fields, params = [], []
+    if session.status is not None:
+        fields.append("status = %s")
+        params.append(session.status)
+    if session.notes is not None:
+        fields.append("notes = %s")
+        params.append(session.notes)
+    if not fields:
+        return {'message': 'Nothing to update'}
+    params.append(session_id)
+    query = f"UPDATE sessions SET {', '.join(fields)} WHERE id = %s"
+    try:
+        execute(query=query, params=params)
+        return {'message': 'Session updated successfully'}
+    except Exception as e:
+        return {'message': f'Error {e} occurred'}

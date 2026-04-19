@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     address VARCHAR(200),
     role ENUM('client', 'admin', 'trainer') NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 );
 
 CREATE TABLE IF NOT EXISTS membership_plans (

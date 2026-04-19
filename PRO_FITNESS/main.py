@@ -1,7 +1,16 @@
 from fastapi import FastAPI
-from routes import users, membership, user_membership, sessions, attendance, trainer_availability
+from fastapi.middleware.cors import CORSMiddleware
+from routes import users, membership, user_membership, sessions, attendance, trainer_availability, auth
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3001"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 app.include_router(
@@ -42,6 +51,13 @@ app.include_router(
     tags=['trainer_availability']
 )
 
+
+
+app.include_router(
+    auth.router,
+    prefix='/api',
+    tags=['auth']
+)
 
 
 @app.get("/")

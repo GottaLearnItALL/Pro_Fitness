@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = 'http://127.0.0.1:8000/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -16,6 +16,7 @@ export const deleteUser = (id) => api.delete(`/users/${id}`);
 // ── Sessions ──────────────────────────────────────────────────
 export const getSessions = () => api.get('/sessions');
 export const createSession = (data) => api.post('/sessions', data);
+export const updateSession = (id, data) => api.put(`/sessions/${id}`, data);
 
 // ── Trainer Availability ─────────────────────────────────────
 export const getTrainerAvailability = () => api.get('/trainer_availability/');
@@ -30,5 +31,6 @@ export const getMembershipPlans = () => api.get('/membership_plans/');
 
 // ── Attendance ────────────────────────────────────────────────
 export const getAttendance = () => api.get('/attendance');
+export const postAttendance = (data) => api.post('/attendance', data);
 
 export default api;

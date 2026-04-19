@@ -111,7 +111,7 @@ model = init_chat_model(
 @tool('trainer_availability')
 def get_availability(trainer_name: str) -> str:
     """
-    Search for availability of the trainer given the name of the trainer with day_of_week, start_time and end_time
+    Search for availability of the trainer given the name of the trainer with day_of_week, start_time and end_time. Format the response in a readable format/tabular format.
     """
 
     query = """SELECT u.first_name, ta.day_of_week, 
@@ -122,6 +122,7 @@ def get_availability(trainer_name: str) -> str:
                WHERE u.first_name = %s
                """
     availability = execute(query=query, params=(trainer_name,), fetch=True)
+    print(availability)
     return str(availability)
 
 
@@ -134,6 +135,7 @@ def create_booking(trainer_name: str, session_date: str, time: str) -> str:
     Book a session with a trainer. 
     session_date must be in YYYY-MM-DD format (e.g. 2026-04-01).
     session_time must be in HH:MM format (e.g. 10:00).
+    Stop after returning the response. Do not ask the user to confirm the booking.
     """
 
 
@@ -199,10 +201,10 @@ def create_booking(trainer_name: str, session_date: str, time: str) -> str:
     try:
         response = execute(query=insert_session, params=(user_id, trainer_id[0]['id'], user_enrollment[0]['id'], f'{session_date} {time}:00', 60))
         if response:
-
-            return f"Session Booked Succesfully {response[0]}"
+            return "Session Booked Succesfully"
     except Exception as e:
-        return f'Exception {e} occured, Could not book a session'
+        print(f'Exception {e} occured, Could not book a session')
+        return "Could not book a session"
 
     
 
