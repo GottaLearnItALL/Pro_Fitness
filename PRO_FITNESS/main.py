@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import users, membership, user_membership, sessions, attendance, trainer_availability, auth
+from fastapi.security import HTTPBearer
+
+security = HTTPBearer()
 
 app = FastAPI()
 

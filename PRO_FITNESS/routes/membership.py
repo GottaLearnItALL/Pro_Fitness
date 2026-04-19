@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from db import execute
 from pydantic import BaseModel
-
+from routes.auth_dependency import require_role
+from fastapi import Depends
 
 
 router = APIRouter()
@@ -17,7 +18,7 @@ class Membership_plans(BaseModel):
 
 
 @router.get('/membership_plans/', tags=["membership_plans"])
-def get_membership_plans():
+def get_membership_plans(user=Depends(require_role("admin","client"))):
     """
     Function returns the membership plans fetched from the table.
     """
@@ -33,7 +34,7 @@ def get_membership_plans():
 
 
 @router.post('/membership_plans/', tags=["membership_plans"])
-def post_membership_plans(plans:Membership_plans):
+def post_membership_plans(plans:Membership_plans, user=Depends(require_role("admin"))):
     """
     Function to insert membership plans to the table.
     """

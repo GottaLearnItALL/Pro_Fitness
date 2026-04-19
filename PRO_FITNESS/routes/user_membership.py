@@ -2,7 +2,8 @@ from fastapi import APIRouter
 from db import execute
 from pydantic import BaseModel
 from datetime import date, timedelta
-
+from routes.auth_dependency import require_role
+from fastapi import Depends
 
 router = APIRouter()
 
@@ -15,7 +16,7 @@ class Membership(BaseModel):
 
 
 @router.get('/memberships', tags=['user_membership'])
-def get_memberships():
+def get_memberships(user=Depends(require_role("admin"))):
     print("Fetching Memberships")
     query = "SELECT * FROM memberships"
     try:
@@ -26,7 +27,7 @@ def get_memberships():
 
 
 @router.post('/memberships', tags=['user_membership'])
-def post_memberships(membership:Membership):
+def post_memberships(membership:Membership, user=Depends(require_role("admin"))):
     print("Add memberships")
     get_sessions_limits_query = "SELECT * FROM membership_plans WHERE id = %s"
     plan = execute(query=get_sessions_limits_query, params=(membership.plan_id,), fetch=True)

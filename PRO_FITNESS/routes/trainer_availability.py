@@ -2,7 +2,8 @@ from fastapi import APIRouter
 from db import execute
 from pydantic import BaseModel
 from datetime import date, time
-
+from routes.auth_dependency import require_role
+from fastapi import Depends
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ class Trainer_availabilty(BaseModel):
 
 
 @router.get('/trainer_availability/', tags=['trainer_availability'])
-def get_trainer_availability():
+def get_trainer_availability(user=Depends(require_role("admin","trainer"))):
     query = """SELECT trainer_id, day_of_week, 
                TIME_FORMAT(start_time, '%h:%i %p') as start_time,
                TIME_FORMAT(end_time, '%h:%i %p') as end_time
@@ -31,7 +32,7 @@ def get_trainer_availability():
 
 
 @router.post('/trainer_availability/', tags=['trainer_availability'])
-def add_trainer_availability(trainer: Trainer_availabilty):
+def add_trainer_availability(trainer: Trainer_availabilty, user=Depends(require_role("admin","trainer"))):
     print("Entering post request")
 
     query = "INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time) VALUES (%s,%s,%s,%s)"

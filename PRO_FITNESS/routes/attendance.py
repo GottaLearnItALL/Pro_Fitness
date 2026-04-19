@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from db import execute
 from pydantic import BaseModel
 from datetime import date, timedelta
+from routes.auth_dependency import require_role
+from fastapi import Depends
 
 
 router = APIRouter()
@@ -16,7 +18,7 @@ class Attendance(BaseModel):
 
 
 @router.get('/attendance', tags=['attendance'])
-def get_attendance():
+def get_attendance(user=Depends(require_role("admin","client","trainer"))):
     print("Fetching Attendance")
     query = "SELECT * FROM attendance"
     try:
@@ -27,7 +29,7 @@ def get_attendance():
 
 
 @router.post('/attendance', tags=['attendance'])
-def post_attendance(attendance:Attendance):
+def post_attendance(attendance:Attendance, user=Depends(require_role("admin","trainer"))):
     print("Recording Attendance")
 
 

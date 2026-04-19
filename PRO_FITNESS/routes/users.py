@@ -1,7 +1,8 @@
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db import execute
 from pydantic import BaseModel
+from routes.auth_dependency import get_current_user, require_role
 
 
 class User(BaseModel):
@@ -24,9 +25,8 @@ class UserUpdate(BaseModel):
 router = APIRouter()
 
 
-
 @router.get('/users/', tags=['users'])
-def get_users():
+def get_users(user=Depends(require_role("admin"))):
     print("Entering get")
     query = "SELECT * FROM users"
     try:
@@ -40,7 +40,7 @@ def get_users():
        
  
 @router.post('/users/', tags=['users'])
-def create_users(user: User):
+def create_users(user: User, user_=Depends(require_role("admin"))):
     print("Entering post")
     query = """ INSERT INTO users 
     (first_name, last_name, email, phone, address, role)
@@ -55,7 +55,7 @@ def create_users(user: User):
 
 
 @router.put('/users/{user_id}', tags=['users'])
-def update_user(user_id: int, user: UserUpdate):
+def update_user(user_id: int, user: UserUpdate, user_=Depends(require_role("admin"))):
     print("Entering put")
     fields = []
     params = []
@@ -85,7 +85,7 @@ def update_user(user_id: int, user: UserUpdate):
 
 
 @router.delete('/users/{user_id}', tags=['users'])
-def delete_user(user_id: int):
+def delete_user(user_id: int, user=Depends(require_role("admin"))):
     print("Entering Delete")
     query = f"DELETE FROM users WHERE id = %s"
 

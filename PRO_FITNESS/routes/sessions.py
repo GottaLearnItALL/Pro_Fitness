@@ -2,7 +2,8 @@ from fastapi import APIRouter
 from db import execute
 from pydantic import BaseModel
 from datetime import datetime, timedelta
-
+from routes.auth_dependency import require_role
+from fastapi import Depends
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ class SessionUpdate(BaseModel):
 
 
 @router.get('/sessions', tags=['sessions'])
-def get_sessions():
+def get_sessions(user=Depends(require_role("admin","trainer","client"))):
     print("Fetching Sessions")
     query = "SELECT * FROM sessions"
     try:
@@ -32,7 +33,7 @@ def get_sessions():
 
 
 @router.post('/sessions', tags=['sessions'])
-def post_sessions(sessions:Sessions):
+def post_sessions(sessions:Sessions, user=Depends(require_role("admin", "client"))):
     print("Adding sessions")
 
 
@@ -48,7 +49,7 @@ def post_sessions(sessions:Sessions):
 
 
 @router.put('/sessions/{session_id}', tags=['sessions'])
-def update_session(session_id: int, session: SessionUpdate):
+def update_session(session_id: int, session: SessionUpdate, user=Depends(require_role("admin","client"))):
     fields, params = [], []
     if session.status is not None:
         fields.append("status = %s")
