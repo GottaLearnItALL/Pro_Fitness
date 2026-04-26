@@ -15,6 +15,17 @@ class Membership(BaseModel):
 
 
 
+@router.get('/memberships/me', tags=['user_membership'])
+def get_my_membership(user=Depends(require_role("client"))):
+    """Returns the logged-in client's own membership only."""
+    query = "SELECT * FROM memberships WHERE client_id = %s ORDER BY id DESC LIMIT 1"
+    try:
+        response = execute(query=query, params=(user['user_id'],), fetch=True)
+        return {'message': 'Membership fetched successfully', 'Data': response}
+    except Exception as e:
+        return {'message': f'Exception {e} occured', 'Data': []}
+
+
 @router.get('/memberships', tags=['user_membership'])
 def get_memberships(user=Depends(require_role("admin"))):
     print("Fetching Memberships")
@@ -27,7 +38,7 @@ def get_memberships(user=Depends(require_role("admin"))):
 
 
 @router.post('/memberships', tags=['user_membership'])
-def post_memberships(membership:Membership, user=Depends(require_role("admin"))):
+def post_memberships(membership:Membership, user=Depends(require_role("admin","client"))):
     print("Add memberships")
     get_sessions_limits_query = "SELECT * FROM membership_plans WHERE id = %s"
     plan = execute(query=get_sessions_limits_query, params=(membership.plan_id,), fetch=True)

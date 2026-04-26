@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import users, membership, user_membership, sessions, attendance, trainer_availability, auth
+from routes import users, membership, user_membership, sessions, attendance, trainer_availability, auth, chat_api
 from fastapi.security import HTTPBearer
 
 security = HTTPBearer()
@@ -62,6 +62,12 @@ app.include_router(
     tags=['auth']
 )
 
+
+app.include_router(
+    chat_api.router,
+    prefix='/api',
+    tags=['chat']
+)
 
 @app.get("/")
 def read_root():

@@ -12,7 +12,6 @@ def get_current_user(credentials:HTTPAuthorizationCredentials = Depends(security
     try:
         token = credentials.credentials
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-        print(payload)
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token Expired")
@@ -29,4 +28,4 @@ def require_role(*allowed_roles):
 
 
 
-
+    

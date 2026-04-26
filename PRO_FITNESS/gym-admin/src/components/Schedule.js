@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getSessions, getUsers, createSession, getMemberships } from '../api';
 import Modal from './Modal';
+import { useBookingRefresh } from '../bookingEvent';
 
 const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
@@ -61,6 +62,7 @@ function Schedule() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useBookingRefresh(fetchData);   // re-fetch whenever chatbot books a session
 
   const weekStart = getWeekStart(weekOffset);
 

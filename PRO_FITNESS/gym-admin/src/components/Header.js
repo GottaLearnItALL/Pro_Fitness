@@ -1,4 +1,5 @@
 import React from 'react';
+import ProfileMenu from './ProfileMenu';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '◈' },
@@ -7,13 +8,13 @@ const tabs = [
   { id: 'trainers',  label: 'Trainers',  icon: '◉' },
 ];
 
-function Header({ activeTab, setActiveTab }) {
+function Header({ activeTab, setActiveTab, onLogout }) {
   return (
     <header className="header">
       <div className="logo">
-        <div className="logo-icon">F</div>
+        <div className="logo-icon">P</div>
         <div className="logo-text">
-          <h1>FitnessPro</h1>
+          <h1>ProFitness</h1>
           <span>Admin Portal</span>
         </div>
       </div>
@@ -31,10 +32,7 @@ function Header({ activeTab, setActiveTab }) {
         ))}
       </nav>
 
-      <div className="user-profile">
-        <div className="status-indicator" />
-        <div className="user-avatar">AD</div>
-      </div>
+      <ProfileMenu onLogout={onLogout} />
     </header>
   );
 }

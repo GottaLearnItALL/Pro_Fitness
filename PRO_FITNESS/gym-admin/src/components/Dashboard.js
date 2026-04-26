@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getUsers, getSessions, postAttendance, updateSession } from '../api';
 import Modal from './Modal';
+import { useBookingRefresh } from '../bookingEvent';
 
 const STATUS_COLORS = {
   scheduled:  { bg: 'rgba(212,175,135,0.15)', color: '#d4af87' },
@@ -132,6 +133,7 @@ function Dashboard({ setActiveTab }) {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  useBookingRefresh(fetchData);   // re-fetch whenever chatbot books a session
 
   const clients  = users.filter(u => u.role === 'client');
   const trainers = users.filter(u => u.role === 'trainer');

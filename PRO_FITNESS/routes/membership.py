@@ -18,19 +18,14 @@ class Membership_plans(BaseModel):
 
 
 @router.get('/membership_plans/', tags=["membership_plans"])
-def get_membership_plans(user=Depends(require_role("admin","client"))):
-    """
-    Function returns the membership plans fetched from the table.
-    """
-
-    print("Getting Membership Plans")
-    
+def get_membership_plans():
+    """Public — used on landing page before login."""
     query = "SELECT * FROM membership_plans"
     try:
         response = execute(query=query, fetch=True)
-        return {"message": f"Membership Plans retrieved succesfully {response[0]}"}
+        return {"message": "Membership Plans retrieved successfully", "Data": response}
     except Exception as e:
-        return {"message": "Error {e} occured"}
+        return {"message": f"Error {e} occurred", "Data": []}
 
 
 @router.post('/membership_plans/', tags=["membership_plans"])
