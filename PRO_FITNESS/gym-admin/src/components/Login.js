@@ -62,9 +62,9 @@ export default function Login({ onLoginSuccess, onGoRegister, onGoLanding }) {
 
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="landing-logo-icon">P</div>
+          <div className="landing-logo-icon">H</div>
           <div>
-            <div className="landing-logo-name">ProFitness</div>
+            <div className="landing-logo-name">HAACHIKO FITNESS</div>
             <div className="landing-logo-sub">Admin Portal</div>
           </div>
         </div>

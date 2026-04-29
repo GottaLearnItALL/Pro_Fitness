@@ -12,9 +12,9 @@ function Header({ activeTab, setActiveTab, onLogout }) {
   return (
     <header className="header">
       <div className="logo">
-        <div className="logo-icon">P</div>
+        <div className="logo-icon">H</div>
         <div className="logo-text">
-          <h1>ProFitness</h1>
+          <h1>HAACHIKO FITNESS</h1>
           <span>Admin Portal</span>
         </div>
       </div>

@@ -123,9 +123,9 @@ export default function Register({ selectedPlan, onLoginSuccess, onGoLogin, onGo
 
       <div className="auth-card auth-card-wide">
         <div className="auth-logo">
-          <div className="landing-logo-icon">P</div>
+          <div className="landing-logo-icon">H</div>
           <div>
-            <div className="landing-logo-name">ProFitness</div>
+            <div className="landing-logo-name">HAACHIKO FITNESS</div>
             <div className="landing-logo-sub">Admin Portal</div>
           </div>
         </div>

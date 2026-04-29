@@ -52,8 +52,8 @@ export default function ClientApp({ onLogout }) {
       {/* Header */}
       <header className="header">
         <div className="logo">
-          <div className="logo-icon">P</div>
-          <div className="logo-text"><h1>ProFitness</h1><span>Member Portal</span></div>
+          <div className="logo-icon">H</div>
+          <div className="logo-text"><h1>HAACHIKO FITNESS</h1><span>Member Portal</span></div>
         </div>
         <nav className="nav-tabs">
           {[{id:'sessions',label:'My Sessions',icon:'◷'},{id:'membership',label:'Membership',icon:'◆'}].map(t => (

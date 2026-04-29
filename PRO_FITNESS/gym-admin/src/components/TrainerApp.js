@@ -139,8 +139,8 @@ export default function TrainerApp({ onLogout }) {
       {/* Header */}
       <header className="header">
         <div className="logo">
-          <div className="logo-icon">P</div>
-          <div className="logo-text"><h1>ProFitness</h1><span>Trainer Portal</span></div>
+          <div className="logo-icon">H</div>
+          <div className="logo-text"><h1>HAACHIKO FITNESS</h1><span>Trainer Portal</span></div>
         </div>
         <nav className="nav-tabs">
           {[{id:'schedule',label:'My Schedule',icon:'◷'},{id:'availability',label:'Availability',icon:'◈'}].map(t => (

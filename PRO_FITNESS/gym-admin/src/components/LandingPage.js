@@ -141,7 +141,7 @@ export default function LandingPage({ onLogin, onSelectPlan, scrollToPricing = f
 
       {/* ── Navbar ── */}
       <nav className="landing-nav">
-        <div className="landing-logo-wordmark">ProFitness</div>
+        <div className="landing-logo-wordmark">HAACHIKO FITNESS</div>
         <div className="landing-nav-links">
           <a href="#about"    className="landing-nav-link">About</a>
           <a href="#features" className="landing-nav-link">Features</a>
@@ -187,7 +187,7 @@ export default function LandingPage({ onLogin, onSelectPlan, scrollToPricing = f
           <div className="landing-section-tag">About Us</div>
           <h2 className="landing-section-title">Built for gyms that<br />mean business.</h2>
           <p className="landing-about-text">
-            ProFitness Admin was built from the ground up for fitness professionals who want
+            HAACHIKO FITNESS Admin was built from the ground up for fitness professionals who want
             total visibility into their operation. From booking and billing to trainer performance
             and client retention — everything you need, nothing you don't.
           </p>
@@ -235,8 +235,8 @@ export default function LandingPage({ onLogin, onSelectPlan, scrollToPricing = f
 
       {/* ── Footer ── */}
       <footer className="landing-footer">
-        <div className="landing-logo-wordmark" style={{ fontSize: 18 }}>ProFitness</div>
-        <div className="landing-footer-copy">© 2026 ProFitness. All rights reserved.</div>
+        <div className="landing-logo-wordmark" style={{ fontSize: 18 }}>HAACHIKO FITNESS</div>
+        <div className="landing-footer-copy">© 2026 HAACHIKO FITNESS. All rights reserved.</div>
       </footer>
     </div>
   );
