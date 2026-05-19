@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { postChat } from '../api';
 import { emitBookingConfirmed } from '../bookingEvent';
+import { OPEN_EVENT } from '../chatEvent';
 
 const WELCOME = {
   role: 'assistant',
@@ -13,6 +14,16 @@ function Chatbot() {
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
   const messagesEndRef           = useRef(null);
+
+  // Listen for external open requests (e.g. "Book Session" / "Cancel" buttons)
+  useEffect(() => {
+    const handler = (e) => {
+      setIsOpen(true);
+      if (e.detail?.message) setInput(e.detail.message);
+    };
+    window.addEventListener(OPEN_EVENT, handler);
+    return () => window.removeEventListener(OPEN_EVENT, handler);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

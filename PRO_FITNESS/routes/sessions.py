@@ -27,6 +27,8 @@ def get_sessions(user=Depends(require_role("admin","trainer","client"))):
     query = "SELECT * FROM sessions"
     try:
         response = execute(query=query, fetch=True)
+        for row in response:
+            row["scheduled_at"] = row["scheduled_at"].isoformat() + "Z"
         return {'message': 'Sessions fetched successfully', 'Data': response}
     except Exception as e:
         return {'message': f'Exception {e} occured'}
@@ -35,6 +37,7 @@ def get_sessions(user=Depends(require_role("admin","trainer","client"))):
 @router.post('/sessions', tags=['sessions'])
 def post_sessions(sessions:Sessions, user=Depends(require_role("admin", "client"))):
     print("Adding sessions")
+
 
 
     query = "INSERT INTO sessions (client_id,trainer_id,membership_id, scheduled_at, duration_min, notes) VALUES (%s,%s,%s,%s,%s,%s)"

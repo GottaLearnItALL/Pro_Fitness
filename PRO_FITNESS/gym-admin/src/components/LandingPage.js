@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getMembershipPlansPublic } from '../api';
+import LandingChatbot from './LandingChatbot';
 
 const FEATURES = [
   { icon: '◎', title: 'Client Management',  desc: 'Full CRUD — memberships, attendance, and progress in one view.' },
@@ -238,6 +239,8 @@ export default function LandingPage({ onLogin, onSelectPlan, scrollToPricing = f
         <div className="landing-logo-wordmark" style={{ fontSize: 18 }}>HAACHIKO FITNESS</div>
         <div className="landing-footer-copy">© 2026 HAACHIKO FITNESS. All rights reserved.</div>
       </footer>
+
+      <LandingChatbot />
     </div>
   );
 }

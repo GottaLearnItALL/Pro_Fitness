@@ -1,34 +1,255 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { getUsers, createUser, updateUser, deleteUser, getTrainerAvailability } from '../api';
-import Modal from './Modal';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  getUsers, createUser, updateUser, deleteUser,
+  getTrainerAvailability, addTrainerAvailability, deleteTrainerAvailability,
+} from '../api';
 
-const EMPTY_FORM = { f_name: '', l_name: '', email: '', phone: '', address: '', specialty: '' };
+const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 
-const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const EMPTY_FORM = { f_name:'', l_name:'', email:'', phone:'', address:'', password:'' };
+const EMPTY_SLOT = { day_of_week:'monday', start_time:'09:00', end_time:'17:00' };
 
-function Trainers() {
-  const [trainers, setTrainers]       = useState([]);
+/* ─── Slide-over Panel ─────────────────────────────────────── */
+function TrainerPanel({ trainer, allAvailability, onClose, onSaved }) {
+  const isEdit = Boolean(trainer);
+
+  const [form, setForm] = useState(
+    isEdit
+      ? { f_name: trainer.first_name||'', l_name: trainer.last_name||'', email: trainer.email||'', phone: trainer.phone||'', address: trainer.address||'', password:'' }
+      : EMPTY_FORM
+  );
+  const [slots,     setSlots]   = useState(
+    isEdit ? allAvailability.filter(a => a.trainer_id === trainer.id) : []
+  );
+  const [newSlot,   setNewSlot] = useState(EMPTY_SLOT);
+  const [toRemove,  setToRemove] = useState([]);   // slot IDs to delete on save
+  const [toAdd,     setToAdd]   = useState([]);    // unsaved new slots
+  const [saving,    setSaving]  = useState(false);
+  const [error,     setError]   = useState('');
+  const bodyRef = useRef(null);
+
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+  const setSlot = k => e => setNewSlot(s => ({ ...s, [k]: e.target.value }));
+
+  const addPendingSlot = () => {
+    if (newSlot.start_time >= newSlot.end_time) {
+      setError('Start time must be before end time.'); return;
+    }
+    setToAdd(prev => [...prev, { ...newSlot }]);
+    setNewSlot(EMPTY_SLOT);
+    setError('');
+  };
+
+  const removeSaved = (slot) => {
+    setSlots(prev => prev.filter(s => s.id !== slot.id));
+    setToRemove(prev => [...prev, slot.id]);
+  };
+
+  const removePending = (i) => setToAdd(prev => prev.filter((_, j) => j !== i));
+
+  const handleSave = async () => {
+    setError('');
+    if (!form.f_name.trim() || !form.l_name.trim() || !form.email.trim()) {
+      setError('First name, last name and email are required.'); return;
+    }
+    if (!isEdit && !form.password) {
+      setError('Temporary password is required.'); return;
+    }
+    setSaving(true);
+    try {
+      let trainerId = trainer?.id;
+
+      if (isEdit) {
+        await updateUser(trainer.id, {
+          f_name: form.f_name, l_name: form.l_name,
+          email: form.email,   phone: form.phone, address: form.address,
+        });
+      } else {
+        // Create trainer — password is hashed server-side via register endpoint
+        const res = await createUser({
+          f_name: form.f_name, l_name: form.l_name,
+          email: form.email,   phone: form.phone, address: form.address,
+          role:  'trainer',    password: form.password,
+        });
+        trainerId = res.data?.id;
+      }
+
+      // Apply availability changes
+      await Promise.all([
+        ...toRemove.map(id => deleteTrainerAvailability(id).catch(() => {})),
+        ...toAdd.map(s => addTrainerAvailability({ trainer_id: trainerId, ...s }).catch(() => {})),
+      ]);
+
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const allSlots = [
+    ...slots.map(s => ({ ...s, pending: false })),
+    ...toAdd.map(s => ({ ...s, id: null, pending: true })),
+  ].sort((a, b) => DAYS.indexOf(a.day_of_week) - DAYS.indexOf(b.day_of_week));
+
+  return (
+    <>
+      <div className="ts-backdrop" onClick={onClose} />
+      <div className="ts-panel">
+
+        {/* Header */}
+        <div className="ts-header">
+          <div>
+            <div className="ts-header-title">
+              {isEdit ? `Edit Trainer` : 'Add Trainer'}
+            </div>
+            {isEdit && (
+              <div className="ts-header-sub">
+                {trainer.first_name} {trainer.last_name}
+              </div>
+            )}
+          </div>
+          <button className="ts-close" onClick={onClose}>×</button>
+        </div>
+
+        {/* Body */}
+        <div className="ts-body" ref={bodyRef}>
+          {error && <div className="error-banner">{error}</div>}
+
+          <div className="ts-section-label">Basic Info</div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">First Name *</label>
+              <input className="form-input" placeholder="Mike" value={form.f_name} onChange={set('f_name')} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name *</label>
+              <input className="form-input" placeholder="Chen" value={form.l_name} onChange={set('l_name')} />
+            </div>
+            <div className="form-group full-width">
+              <label className="form-label">Email *</label>
+              <input className="form-input" type="email" placeholder="mike@haachiko.com" value={form.email} onChange={set('email')} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone</label>
+              <input className="form-input" placeholder="5550001234" value={form.phone} onChange={set('phone')} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Address</label>
+              <input className="form-input" placeholder="123 Main St" value={form.address} onChange={set('address')} />
+            </div>
+            {!isEdit && (
+              <div className="form-group full-width">
+                <label className="form-label">Temporary Password *</label>
+                <input className="form-input" type="password" placeholder="Min 8 characters" value={form.password} onChange={set('password')} />
+                <span style={{ fontSize:12, color:'var(--color-text-muted)', marginTop:4, display:'block' }}>
+                  The trainer will use this to log in for the first time.
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Availability slots */}
+          <div className="ts-section-label" style={{ marginTop: 28 }}>
+            Availability Slots
+            <span style={{ fontWeight:400, color:'var(--color-text-muted)', marginLeft:8 }}>
+              ({allSlots.length} day{allSlots.length !== 1 ? 's' : ''})
+            </span>
+          </div>
+
+          {allSlots.length === 0 ? (
+            <div className="ts-avail-empty">No slots added yet</div>
+          ) : (
+            <div className="ts-avail-list">
+              {allSlots.map((slot, i) => (
+                <div key={i} className={`ts-avail-slot ${slot.pending ? 'ts-avail-slot-pending' : ''}`}>
+                  <span className="ts-avail-day">{slot.day_of_week}</span>
+                  <span className="ts-avail-time">
+                    {slot.start_time} – {slot.end_time}
+                  </span>
+                  {slot.pending && <span className="ts-avail-new-badge">new</span>}
+                  <button
+                    className="ts-avail-remove"
+                    onClick={() => slot.pending ? removePending(i - slots.length) : removeSaved(slot)}
+                    title="Remove slot"
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add slot inline form */}
+          <div className="ts-avail-add">
+            <div className="ts-avail-add-label">+ Add slot</div>
+            <div className="ts-avail-add-row">
+              <select className="form-select ts-avail-select" value={newSlot.day_of_week} onChange={setSlot('day_of_week')}>
+                {DAYS.map(d => <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>)}
+              </select>
+              <input type="time" className="form-input ts-avail-time-input" value={newSlot.start_time} onChange={setSlot('start_time')} />
+              <span style={{ color:'var(--color-text-muted)', flexShrink:0 }}>to</span>
+              <input type="time" className="form-input ts-avail-time-input" value={newSlot.end_time} onChange={setSlot('end_time')} />
+              <button className="btn btn-secondary ts-avail-add-btn" onClick={addPendingSlot}>Add</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="ts-footer">
+          <button className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Trainer'}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─── Delete confirmation ──────────────────────────────────── */
+function DeleteConfirm({ trainer, onConfirm, onCancel }) {
+  return (
+    <>
+      <div className="ts-backdrop" onClick={onCancel} />
+      <div className="ts-confirm">
+        <div className="ts-confirm-icon">⚠</div>
+        <div className="ts-confirm-title">Remove Trainer</div>
+        <div className="ts-confirm-msg">
+          Are you sure you want to remove <strong>{trainer.first_name} {trainer.last_name}</strong>?
+          This action cannot be undone.
+        </div>
+        <div className="ts-confirm-actions">
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-danger" onClick={onConfirm}>Remove</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─── Main Component ───────────────────────────────────────── */
+export default function Trainers() {
+  const [trainers,     setTrainers]     = useState([]);
   const [availability, setAvailability] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [showModal, setShowModal]     = useState(false);
-  const [editTarget, setEdit]         = useState(null);
-  const [form, setForm]               = useState(EMPTY_FORM);
-  const [error, setError]             = useState('');
-  const [saving, setSaving]           = useState(false);
-  const [scheduleFor, setScheduleFor] = useState(null); // trainer to show availability
+  const [loading,      setLoading]      = useState(true);
+  const [panelFor,     setPanelFor]     = useState(undefined); // undefined=closed, null=add, trainer=edit
+  const [deleteFor,    setDeleteFor]    = useState(null);
 
   const fetchData = useCallback(() => {
     setLoading(true);
     Promise.all([getUsers(), getTrainerAvailability()])
       .then(([uRes, aRes]) => {
-        const all = uRes.data?.Data || [];
-        setTrainers(all.filter(u => u.role === 'trainer'));
-
-        // Availability may return stringified data — handle gracefully
+        setTrainers((uRes.data?.Data || []).filter(u => u.role === 'trainer'));
         const raw = aRes.data;
-        if (Array.isArray(raw)) setAvailability(raw);
-        else if (Array.isArray(raw?.Data)) setAvailability(raw.Data);
-        else setAvailability([]);
+        setAvailability(Array.isArray(raw?.Data) ? raw.Data : Array.isArray(raw) ? raw : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -36,84 +257,21 @@ function Trainers() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openAdd = () => {
-    setEdit(null);
-    setForm(EMPTY_FORM);
-    setError('');
-    setShowModal(true);
+  const handleDelete = async () => {
+    try { await deleteUser(deleteFor.id); fetchData(); }
+    catch { alert('Failed to remove trainer.'); }
+    finally { setDeleteFor(null); }
   };
 
-  const openEdit = (t) => {
-    setEdit(t);
-    setForm({
-      f_name:    t.first_name || '',
-      l_name:    t.last_name  || '',
-      email:     t.email      || '',
-      phone:     t.phone      || '',
-      address:   t.address    || '',
-      specialty: t.specialty  || '',
-    });
-    setError('');
-    setShowModal(true);
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!form.f_name || !form.l_name || !form.email) {
-      setError('First name, last name and email are required.');
-      return;
-    }
-    setSaving(true);
-    try {
-      const payload = {
-        f_name:  form.f_name,
-        l_name:  form.l_name,
-        email:   form.email,
-        phone:   form.phone,
-        address: form.address,
-        role:    'trainer',
-      };
-      if (editTarget) {
-        await updateUser(editTarget.id, payload);
-      } else {
-        await createUser(payload);
-      }
-      setShowModal(false);
-      fetchData();
-    } catch {
-      setError('Failed to save trainer. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (t) => {
-    if (!window.confirm(`Delete ${t.first_name} ${t.last_name}? This cannot be undone.`)) return;
-    try {
-      await deleteUser(t.id);
-      fetchData();
-    } catch {
-      alert('Failed to delete trainer.');
-    }
-  };
-
-  const getInitials = (t) =>
-    `${(t.first_name || '?')[0]}${(t.last_name || '?')[0]}`.toUpperCase();
-
-  const trainerAvailability = (trainerId) =>
-    availability.filter(a => a.trainer_id === trainerId);
-
-  const clientCount = (trainerId) => {
-    // We don't have assignments data, so just show 0 as placeholder
-    return 0;
-  };
+  const trainerAvail  = id => availability.filter(a => a.trainer_id === id);
+  const getInitials   = t  => `${(t.first_name||'?')[0]}${(t.last_name||'?')[0]}`.toUpperCase();
+  const isAvailable   = id => trainerAvail(id).length > 0;
 
   return (
     <div className="fade-in">
       <div className="page-header">
         <h2 className="page-title">Trainer Management</h2>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Trainer</button>
+        <button className="btn btn-primary" onClick={() => setPanelFor(null)}>+ Add Trainer</button>
       </div>
 
       {loading ? (
@@ -121,159 +279,86 @@ function Trainers() {
       ) : trainers.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">◉</div>
-          <p>No trainers yet. Add your first trainer!</p>
+          <p>No trainers yet — add your first one!</p>
         </div>
       ) : (
-        <div className="trainer-grid">
-          {trainers.map(trainer => {
-            const avail = trainerAvailability(trainer.id);
-            const isAvailable = avail.length > 0;
-            return (
-              <div key={trainer.id} className="trainer-card">
-                <div className="trainer-header">
-                  <div className="trainer-avatar">{getInitials(trainer)}</div>
-                  <div className="trainer-info">
-                    <h3 className="trainer-name">{trainer.first_name} {trainer.last_name}</h3>
-                    <span className="trainer-specialty">{trainer.email}</span>
-                  </div>
-                  <span className={`trainer-status ${isAvailable ? 'available' : 'busy'}`}>
-                    {isAvailable ? 'Available' : 'No schedule'}
-                  </span>
-                </div>
+        <div className="card" style={{ padding:0, overflow:'hidden' }}>
+          <table className="trainer-table">
+            <thead>
+              <tr>
+                <th style={{ width:56 }}></th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Days</th>
+                <th style={{ width:140 }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trainers.map(t => {
+                const avail    = trainerAvail(t.id);
+                const dayCount = avail.length;
+                const available = isAvailable(t.id);
 
-                <div className="trainer-stats">
-                  <div>
-                    <div className="trainer-stat-value">{avail.length}</div>
-                    <div className="trainer-stat-label">Days</div>
-                  </div>
-                  <div>
-                    <div className="trainer-stat-value" style={{ color: '#f5f2eb' }}>
-                      {trainer.phone || '–'}
-                    </div>
-                    <div className="trainer-stat-label">Phone</div>
-                  </div>
-                </div>
-
-                {/* Availability days */}
-                {avail.length > 0 && (
-                  <div style={{ marginBottom: 14, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {avail.map((a, i) => (
-                      <span key={i} style={{
-                        padding: '3px 10px',
-                        background: 'rgba(212,175,135,0.12)',
-                        borderRadius: 20,
-                        fontSize: 11,
-                        color: 'var(--color-accent)',
-                        textTransform: 'capitalize',
-                      }}>
-                        {a.day_of_week} {a.start_time}–{a.end_time}
+                return (
+                  <tr key={t.id} className="trainer-row">
+                    <td>
+                      <div className="tr-avatar">{getInitials(t)}</div>
+                    </td>
+                    <td>
+                      <div className="tr-name">{t.first_name} {t.last_name}</div>
+                    </td>
+                    <td>
+                      <div className="tr-meta">{t.email || '—'}</div>
+                    </td>
+                    <td>
+                      <div className="tr-meta">{t.phone || '—'}</div>
+                    </td>
+                    <td>
+                      <span className={`tr-badge ${available ? 'tr-badge-available' : 'tr-badge-unavailable'}`}>
+                        {available ? 'Available' : 'Unavailable'}
                       </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="trainer-actions">
-                  <button className="btn btn-primary" onClick={() => setScheduleFor(trainer)}>
-                    View Schedule
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => openEdit(trainer)}>Edit</button>
-                  <button className="btn btn-danger" onClick={() => handleDelete(trainer)}>✕</button>
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                    <td>
+                      <div className="tr-days">
+                        {dayCount > 0
+                          ? <><span className="tr-days-num">{dayCount}</span> day{dayCount !== 1 ? 's' : ''}</>
+                          : <span style={{ color:'var(--color-text-muted)' }}>—</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="tr-actions">
+                        <button className="tr-btn tr-btn-edit" onClick={() => setPanelFor(t)}>Edit</button>
+                        <button className="tr-btn tr-btn-remove" onClick={() => setDeleteFor(t)}>Remove</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Add / Edit Modal */}
-      {showModal && (
-        <Modal
-          title={editTarget
-            ? <><span>◉</span> Edit Trainer</>
-            : <><span>+</span> Add New Trainer</>}
-          onClose={() => { setShowModal(false); setError(''); }}
-          actions={
-            <>
-              <button className="btn btn-secondary" onClick={() => { setShowModal(false); setError(''); }}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : editTarget ? 'Save Changes' : 'Add Trainer'}
-              </button>
-            </>
-          }
-        >
-          <form onSubmit={handleSave}>
-            {error && <div className="error-banner">{error}</div>}
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">First Name *</label>
-                <input className="form-input" placeholder="Mike"
-                  value={form.f_name} onChange={e => setForm({ ...form, f_name: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Last Name *</label>
-                <input className="form-input" placeholder="Chen"
-                  value={form.l_name} onChange={e => setForm({ ...form, l_name: e.target.value })} />
-              </div>
-              <div className="form-group full-width">
-                <label className="form-label">Email *</label>
-                <input className="form-input" type="email" placeholder="mike@gym.com"
-                  value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Phone</label>
-                <input className="form-input" placeholder="555-0100"
-                  value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Address</label>
-                <input className="form-input" placeholder="123 Main St"
-                  value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
-              </div>
-            </div>
-          </form>
-        </Modal>
+      {/* Slide-over panel */}
+      {panelFor !== undefined && (
+        <TrainerPanel
+          trainer={panelFor}
+          allAvailability={availability}
+          onClose={() => setPanelFor(undefined)}
+          onSaved={fetchData}
+        />
       )}
 
-      {/* View Schedule Modal */}
-      {scheduleFor && (
-        <Modal
-          title={<><span>◷</span> {scheduleFor.first_name}'s Schedule</>}
-          onClose={() => setScheduleFor(null)}
-          actions={
-            <button className="btn btn-secondary" onClick={() => setScheduleFor(null)}>Close</button>
-          }
-        >
-          {trainerAvailability(scheduleFor.id).length === 0 ? (
-            <div className="empty-state" style={{ padding: '30px 0' }}>
-              <p>No availability set for this trainer.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-              {DAYS_OF_WEEK.map(day => {
-                const slots = trainerAvailability(scheduleFor.id).filter(a => a.day_of_week === day);
-                return slots.map((slot, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 18px',
-                    background: 'rgba(212,175,135,0.07)',
-                    borderRadius: 10,
-                    border: '1px solid rgba(212,175,135,0.15)',
-                  }}>
-                    <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{slot.day_of_week}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-accent)' }}>
-                      {slot.start_time} – {slot.end_time}
-                    </span>
-                  </div>
-                ));
-              })}
-            </div>
-          )}
-        </Modal>
+      {/* Delete confirmation */}
+      {deleteFor && (
+        <DeleteConfirm
+          trainer={deleteFor}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteFor(null)}
+        />
       )}
     </div>
   );
 }
-
-export default Trainers;

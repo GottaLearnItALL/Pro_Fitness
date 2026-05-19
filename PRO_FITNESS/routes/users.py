@@ -25,6 +25,17 @@ class UserUpdate(BaseModel):
 router = APIRouter()
 
 
+@router.get('/users/trainers/', tags=['users'])
+def get_trainers(user=Depends(get_current_user)):
+    """Returns id + name of all trainers — accessible to any authenticated user."""
+    query = "SELECT id, first_name, last_name FROM users WHERE role = 'trainer'"
+    try:
+        response = execute(query=query, fetch=True)
+        return {"message": "Trainers fetched successfully", "Data": response or []}
+    except Exception as e:
+        return {"message": f"Error {e}", "Data": []}
+
+
 @router.get('/users/', tags=['users'])
 def get_users(user=Depends(require_role("admin"))):
     print("Entering get")

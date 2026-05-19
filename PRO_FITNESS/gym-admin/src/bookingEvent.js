@@ -7,11 +7,7 @@ export function emitBookingConfirmed() {
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
-/**
- * Drop this in any component that shows sessions.
- * `callback` should be a stable reference (useCallback) so the
- * effect doesn't re-subscribe on every render.
- */
+
 export function useBookingRefresh(callback) {
   useEffect(() => {
     window.addEventListener(EVENT, callback);

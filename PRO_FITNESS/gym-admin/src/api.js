@@ -43,8 +43,9 @@ export const createSession  = (data)     => api.post('/sessions', data);
 export const updateSession  = (id, data) => api.put(`/sessions/${id}`, data);
 
 // ── Trainer Availability ─────────────────────────────────────
-export const getTrainerAvailability = ()     => api.get('/trainer_availability/');
-export const addTrainerAvailability = (data) => api.post('/trainer_availability/', data);
+export const getTrainerAvailability    = ()     => api.get('/trainer_availability/');
+export const addTrainerAvailability    = (data) => api.post('/trainer_availability/', data);
+export const deleteTrainerAvailability = (id)   => api.delete(`/trainer_availability/${id}`);
 
 // ── Memberships ───────────────────────────────────────────────
 export const getMemberships    = ()     => api.get('/memberships');          // admin only
@@ -59,7 +60,11 @@ export const getMembershipPlansPublic = ()     => axios.get(`${BASE_URL}/members
 export const getAttendance  = ()     => api.get('/attendance');
 export const postAttendance = (data) => api.post('/attendance', data);
 
+// ── Trainers (any authenticated role) ────────────────────────
+export const getTrainers = () => api.get('/users/trainers/');
+
 // ── Chat ──────────────────────────────────────────────────────
-export const postChat = (content) => api.post('/chat', { content });
+export const postChat       = (content) => api.post('/chat', { content });
+export const postPublicChat = (content) => axios.post(`${BASE_URL}/chat`, { content });
 
 export default api;

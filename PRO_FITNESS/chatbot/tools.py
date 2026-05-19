@@ -1,5 +1,6 @@
 import datetime
 import time
+from fastapi import params
 from langchain.tools import tool, ToolRuntime
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
@@ -20,6 +21,8 @@ user_id = 5
 
 _current_user_id = None
 _current_role = None
+
+
 
 def set_user(uid, role):
     global _current_user_id
@@ -92,9 +95,9 @@ def get_client_membership() -> str:
 @tool('client_sessions')
 def get_client_sessions() -> str:
     """ Search for all the sessions for the client that are scheduled with first_name, last_name and the time it is scheduled_at where role is Trainer"""
-        
+
     query = """ 
-    SELECT u.first_name, u.last_name, s.scheduled_at 
+    SELECT s.id, u.first_name, u.last_name, s.scheduled_at 
     FROM sessions s
     JOIN users u ON s.trainer_id = u.id
     WHERE s.client_id = %s AND s.status = 'scheduled'
@@ -104,7 +107,7 @@ def get_client_sessions() -> str:
     return str(response)
 
 
-SYSTEM_PROMPT = None
+
 
 
 model = init_chat_model(
@@ -215,63 +218,104 @@ def create_booking(trainer_name: str, day: str, time: str) -> str:
 
 
 
-
-class ResponseFormat(BaseModel):
-    """Response format for the agent """
-    response: str
+@tool('cancel_booking')
+def cancel_booking(session_id: int) -> str:
+    """Cancel a session by its ID. Use get_client_sessions to find the session ID first."""
+    
+    session = execute(
+        "SELECT id, membership_id FROM sessions WHERE id = %s AND client_id = %s AND status = 'scheduled'",
+        (session_id, _current_user_id), fetch=True
+    )
+    if not session:
+        return "Session not found or already cancelled."
+    
+    execute("UPDATE sessions SET status = 'cancelled' WHERE id = %s", (session[0]['id'],))
+    
+    execute(
+        "UPDATE memberships SET sessions_remaining = sessions_remaining + 1 WHERE id = %s AND sessions_remaining IS NOT NULL",
+        (session[0]['membership_id'],)
+    )
+    
+    return f"Session cancelled successfully. Session refunded to your membership."
 
 
 checkpointer = InMemorySaver()
 
 
-TOOLS = [get_membership_plans, get_trainer, get_client_membership, get_user, get_client_sessions, signup_redirect, get_availability, create_booking]
+PUBLIC_TOOLS = [get_membership_plans, get_trainer, get_availability, signup_redirect]
 
-agent = create_agent(
-    model=model,
-    system_prompt = SYSTEM_PROMPT,
-    tools = TOOLS,
-    checkpointer = checkpointer,
-)
+CLIENT_TOOLS = [get_membership_plans, get_trainer, get_availability, get_client_membership, get_client_sessions, create_booking, cancel_booking, signup_redirect]
 
-config = {"configurable": {"thread_id": "1"}}
+ADMIN_TOOLS = [get_membership_plans, get_trainer, get_availability, get_client_membership, get_client_sessions, create_booking, cancel_booking, get_user, signup_redirect]
+
+TRAINER_TOOLS = [get_client_sessions, get_availability]
 
 
 
-def response(input_text, user_id, user_role):
+
+
+def response(input_text, user_id=None, user_role=None):
     set_user(user_id, user_role)
-    user = execute(query="SELECT * FROM users WHERE id = %s", params=(user_id,), fetch=True)
-    user_name = user[0]['first_name']
-    global SYSTEM_PROMPT
-    SYSTEM_PROMPT = f"""You are a helpful assistant that can help with the gym application.
-    You are currently chatting with {user_name}.
-    You are given a query and you need to search the gym_application database for records matching the query.
-    You need to return the records in a formatted bulleted points.
-    You need to use the tools provided to you to search the database.
-    Only return what is retrieved and no other fluff.
-    You are very formal and do not use emojis.
-    Today's date is {datetime.date.today().strftime('%A, %B %d, %Y')}.
-    When a user mentions a day like "Tuesday" or "next Monday", calculate the next upcoming date for that day and use it. 
-    Never ask the user to provide a date in YYYY-MM-DD format. """
+    today = datetime.date.today().strftime('%A, %B %d, %Y')
 
-    
-    result = agent.invoke(
-        {"messages": [{"role": "user", "content": f"{input_text}"}]},
-        config = config,
+    if user_role == "admin":
+        tools = ADMIN_TOOLS
+        role_context = "You are speaking with an admin. You can access all system data."
+    elif user_role == "client":
+        tools = CLIENT_TOOLS
+        role_context = "You are speaking with a client. Only show their own data."
+    elif user_role == "trainer":
+        tools = TRAINER_TOOLS
+        role_context = "You are speaking with a trainer. Only show their own sessions."
+    else:
+        tools = PUBLIC_TOOLS
+        role_context = "You are speaking with a visitor. Share only general gym info and encourage sign up."
+
+    if user_id:
+        user = execute("SELECT * FROM users WHERE id = %s", (user_id,), fetch=True)
+        user_name = user[0]['first_name']
+    else:
+        user_name = "Guest"
+
+    system_prompt = f"""
+You are FitAssist, a helpful assistant for Haachiko Fitness.
+You are currently chatting with {user_name}.
+Today's date is {today}.
+{role_context}
+Be formal and concise. Return info in clean bullet points. No emojis.
+When a user mentions a day like "Monday", calculate the next upcoming date.
+Always pass dates to tools in YYYY-MM-DD HH:MM:SS format.
+When a user cancels a session without specifying time, assume 10:00 AM.
+"""
+
+    agent = create_agent(
+        model=model,
+        system_prompt=system_prompt,
+        tools=tools,
+        checkpointer=checkpointer,
     )
 
-    # Check raw tool messages for a successful create_booking call.
-    # ToolMessages have a `name` attribute equal to the tool name and
-    # `content` equal to the tool's exact return value — reliable regardless
-    # of how the LLM paraphrases the reply.
+    config = {"configurable": {"thread_id": str(user_id or "guest")}}
+
+    result = agent.invoke(
+        {"messages": [{"role": "user", "content": input_text}]},
+        config=config,
+    )
+
     booking_confirmed = any(
         getattr(m, 'name', None) == 'create_booking'
         and 'Booked' in str(getattr(m, 'content', ''))
         for m in result['messages']
     )
 
+    cancel_confirmed = any(
+        getattr(m, 'name', None) == 'cancel_booking'
+        and 'cancelled' in str(getattr(m, 'content', '')).lower()
+        for m in result['messages']
+    )
+
     return {
         'text': result['messages'][-1].content,
         'booking_confirmed': booking_confirmed,
+        'booking_cancelled': cancel_confirmed,
     }
-
-
