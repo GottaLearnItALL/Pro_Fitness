@@ -3,6 +3,9 @@ from fastapi import APIRouter, Depends
 from db import execute
 from pydantic import BaseModel
 from routes.auth_dependency import get_current_user, require_role
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class User(BaseModel):
@@ -28,7 +31,7 @@ router = APIRouter()
 @router.get('/users/trainers/', tags=['users'])
 def get_trainers(user=Depends(get_current_user)):
     """Returns id + name of all trainers — accessible to any authenticated user."""
-    query = "SELECT id, first_name, last_name FROM users WHERE role = 'trainer'"
+    query = "SELECT id, first_name, last_name FROM users WHERE role = 'trainer' AND is_active=TRUE"
     try:
         response = execute(query=query, fetch=True)
         return {"message": "Trainers fetched successfully", "Data": response or []}
@@ -38,36 +41,39 @@ def get_trainers(user=Depends(get_current_user)):
 
 @router.get('/users/', tags=['users'])
 def get_users(user=Depends(require_role("admin"))):
-    print("Entering get")
-    query = "SELECT * FROM users"
+    logger.info("Fetching all users")
+    query = "SELECT * FROM users WHERE is_active=TRUE"
     try:
         response = execute(query=query,fetch=True)
         if response:
+            logger.info(f"Fetched {len(response)} users")
             return {"message": "User data fetched successfully!", "Data": response}
         else:
+            logger.info("No users found")
             return {"message": "Database is Empty!"}
     except Exception as e:
-        print(f'Exception {e} was caught')
+        logger.error(f"Error fetching users: {e}")
        
  
 @router.post('/users/', tags=['users'])
 def create_users(user: User, user_=Depends(require_role("admin"))):
-    print("Entering post")
-    query = """ INSERT INTO users 
+    logger.info(f"Creating user: {user.email} role={user.role}")
+    query = """ INSERT INTO users
     (first_name, last_name, email, phone, address, role)
     VALUES (%s,%s,%s,%s,%s,%s)
     """
     try:
         response = execute(query=query, params=(user.f_name,user.l_name,user.email,user.phone,user.address,user.role))
-        print(response)
+        logger.info(f"User created id={response} role={user.role}")
         return {"message": f"Item {user.role} added to the DataBase!",'id': response}
     except Exception as e:
+        logger.error(f"Error creating user: {e}")
         return(f"Error: Invalid input data. Details: {e}")
 
 
 @router.put('/users/{user_id}', tags=['users'])
 def update_user(user_id: int, user: UserUpdate, user_=Depends(require_role("admin"))):
-    print("Entering put")
+    logger.info(f"Updating user id={user_id}")
     fields = []
     params = []
     if user.f_name:
@@ -89,19 +95,22 @@ def update_user(user_id: int, user: UserUpdate, user_=Depends(require_role("admi
     query = f"UPDATE users SET {', '.join(fields)} WHERE id = %s"
     try:
         response = execute(query=query, params=params)
-        print(response)
+        logger.info(f"User id={user_id} updated successfully")
         return{'messages': 'User updated succesfully'}
     except Exception as e:
+        logger.error(f"Error updating user id={user_id}: {e}")
         return(f"Error: Invalid input data. Details: {e}")
 
 
 @router.delete('/users/{user_id}', tags=['users'])
 def delete_user(user_id: int, user=Depends(require_role("admin"))):
-    print("Entering Delete")
-    query = f"DELETE FROM users WHERE id = %s"
+    logger.info(f"Deactivating user id={user_id}")
+    query = "UPDATE users SET is_active = False WHERE id=%s"
 
     try:
         response = execute(query=query, params=(user_id,))
-        return {'messages': 'User deleted succesfully'}
+        logger.info(f"User id={user_id} deactivated")
+        return {'messages': 'User Deactivated succesfully'}
     except Exception as e:
+        logger.error(f"Error deactivating user id={user_id}: {e}")
         return(f"Error: Invalid input data. Details: {e}")

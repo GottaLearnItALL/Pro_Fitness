@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from routes.auth_dependency import require_role
 from fastapi import Depends
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,31 +26,32 @@ class SessionUpdate(BaseModel):
 
 @router.get('/sessions', tags=['sessions'])
 def get_sessions(user=Depends(require_role("admin","trainer","client"))):
-    print("Fetching Sessions")
+    logger.info("Fetching all sessions")
     query = "SELECT * FROM sessions"
     try:
         response = execute(query=query, fetch=True)
         for row in response:
             row["scheduled_at"] = row["scheduled_at"].isoformat() + "Z"
+        logger.info(f"Fetched {len(response)} sessions")
         return {'message': 'Sessions fetched successfully', 'Data': response}
     except Exception as e:
+        logger.error(f"Error fetching sessions: {e}")
         return {'message': f'Exception {e} occured'}
 
 
 @router.post('/sessions', tags=['sessions'])
 def post_sessions(sessions:Sessions, user=Depends(require_role("admin", "client"))):
-    print("Adding sessions")
-
-
+    logger.info(f"Creating session client_id={sessions.client_id} trainer_id={sessions.trainer_id}")
 
     query = "INSERT INTO sessions (client_id,trainer_id,membership_id, scheduled_at, duration_min, notes) VALUES (%s,%s,%s,%s,%s,%s)"
 
     try:
         response = execute(query=query, params=(sessions.client_id, sessions.trainer_id,sessions.membership_id,sessions.scheduled_at,sessions.duration_min,sessions.notes))
-
+        logger.info(f"Session created id={response}")
         return {'message': f'New Session Added','id': response}
 
     except Exception as e:
+        logger.error(f"Error creating session: {e}")
         return {'message': 'Error {e} occured'}
 
 
@@ -66,6 +70,8 @@ def update_session(session_id: int, session: SessionUpdate, user=Depends(require
     query = f"UPDATE sessions SET {', '.join(fields)} WHERE id = %s"
     try:
         execute(query=query, params=params)
+        logger.info(f"Session id={session_id} updated: {fields}")
         return {'message': 'Session updated successfully'}
     except Exception as e:
+        logger.error(f"Error updating session id={session_id}: {e}")
         return {'message': f'Error {e} occurred'}

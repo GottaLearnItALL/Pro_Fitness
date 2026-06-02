@@ -3,6 +3,10 @@ from db import execute
 
 BASE_URL = "http://localhost:8000/api"
 
+token_res = requests.post(f"{BASE_URL}/login", json={"email": "aryan@profitness.com", "password": "temp123"})
+token = token_res.json()["token"]
+headers = {"Authorization": f"Bearer {token}"}
+
 # ── Wipe everything clean ──
 from db import get_connection
 
@@ -38,8 +42,9 @@ users = [
 
 user_ids = []
 for user in users:
-    res = requests.post(f"{BASE_URL}/users", json=user)
+    res = requests.post(f"{BASE_URL}/register", json={**user, "password": "temp123"})
     data = res.json()
+    print(data)
     user_ids.append(data["id"])
     print(f"Created user: {user['f_name']} {user['l_name']} ({user['role']}) → ID {data['id']}")
 
@@ -71,8 +76,9 @@ availability = [
 ]
 
 for a in availability:
-    res = requests.post(f"{BASE_URL}/trainer_availability", json=a)
+    res = requests.post(f"{BASE_URL}/trainer_availability", json=a, headers=headers)
     print(f"Availability: trainer {a['trainer_id']} — {a['day_of_week']} {a['start_time']}-{a['end_time']}")
+    print(res.status_code, res.json())
 
 
 # ── Step 2: Membership Plans ──
@@ -82,10 +88,14 @@ plans = [
     {"membership_name": "Yearly", "membership_session_limit": None, "membership_duration": 365, "membership_price": 499},
 ]
 
+
+
 plan_ids = []
 for plan in plans:
-    res = requests.post(f"{BASE_URL}/membership_plans", json=plan)
+# Use headers for protected endpoints
+    res = requests.post(f"{BASE_URL}/membership_plans/", json=plan, headers=headers)
     data = res.json()
+    print(data)
     plan_ids.append(data['id'])
     print(f"Created plan: {plan['membership_name']} (${plan['membership_price']}) → ID {data['id']}")
 
@@ -102,7 +112,7 @@ memberships = [
 
 membership_ids = []
 for m in memberships:
-    res = requests.post(f"{BASE_URL}/memberships", json=m)
+    res = requests.post(f"{BASE_URL}/memberships", json=m, headers=headers)
   
     data = res.json()
   
@@ -135,7 +145,7 @@ sessions = [
 
 session_ids = []
 for s in sessions:
-    res = requests.post(f"{BASE_URL}/sessions", json=s)
+    res = requests.post(f"{BASE_URL}/sessions", json=s, headers=headers)
     data = res.json()
     print(data)
     session_ids.append(data["id"])
@@ -177,7 +187,7 @@ for s_id, u_id, role, check_in, status in completed_sessions:
         "check_in": check_in,
         "status": status,
     }
-    res = requests.post(f"{BASE_URL}/attendance", json=payload)
+    res = requests.post(f"{BASE_URL}/attendance", json=payload, headers=headers)
     data = res.json()
     print(f"Attendance: session {s_id}, user {u_id} ({role}) → {status}")
 

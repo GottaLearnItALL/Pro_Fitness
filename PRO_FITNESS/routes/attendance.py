@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from datetime import date, timedelta
 from routes.auth_dependency import require_role
 from fastapi import Depends
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -19,19 +22,20 @@ class Attendance(BaseModel):
 
 @router.get('/attendance', tags=['attendance'])
 def get_attendance(user=Depends(require_role("admin","client","trainer"))):
-    print("Fetching Attendance")
+    logger.info("Fetching attendance records")
     query = "SELECT * FROM attendance"
     try:
         response = execute(query=query, fetch=True)
+        logger.info(f"Fetched {len(response)} attendance records")
         return {'message': f'Here are the attedance: {response[0]}'}
     except Exception as e:
+        logger.error(f"Error fetching attendance: {e}")
         return {'message': f'Exception {e} occured'}
 
 
 @router.post('/attendance', tags=['attendance'])
 def post_attendance(attendance:Attendance, user=Depends(require_role("admin","trainer"))):
-    print("Recording Attendance")
-
+    logger.info(f"Recording attendance session_id={attendance.session_id} user_id={attendance.user_id} status={attendance.status}")
 
     query = "INSERT INTO attendance (session_id, user_id, role, check_in, status) VALUES (%s,%s,%s,%s,%s)"
 
@@ -50,9 +54,11 @@ def post_attendance(attendance:Attendance, user=Depends(require_role("admin","tr
                     params=(updated_sessions, membership[0]['id'])
                 )
 
+        logger.info(f"Attendance recorded id={response}")
         return {'message': 'Attendance Recorded', 'id': response}
 
     except Exception as e:
+        logger.error(f"Error recording attendance: {e}")
         return {'message': f'Error {e} occurred'}
 
 

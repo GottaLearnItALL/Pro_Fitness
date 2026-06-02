@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import (users, membership, user_membership, sessions, attendance, 
-                    trainer_availability, auth, chat_api, change_password)
+                    trainer_availability, auth, chat_api, change_password, otp, )
 from fastapi.security import HTTPBearer
+import logging
 
 security = HTTPBearer()
 
@@ -10,7 +11,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001"],
+    allow_origins=["http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -74,6 +75,12 @@ app.include_router(
     change_password.router,
     prefix='/api',
     tags=['password']
+)
+
+app.include_router(
+    otp.router,
+    prefix='/api',
+    tags=['OTP']
 )
 
 @app.get("/")

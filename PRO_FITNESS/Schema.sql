@@ -9,10 +9,12 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE,
     phone VARCHAR(20),
+    password_hash VARCHAR(255),
     address VARCHAR(200),
     role ENUM('client', 'admin', 'trainer') NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    timezone VARCHAR(50) DEFAULT 'UTC'
 );
 
 CREATE TABLE IF NOT EXISTS membership_plans (
@@ -68,4 +70,22 @@ CREATE TABLE IF NOT EXISTS trainer_availability (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);  
+
+CREATE TABLE IF NOT EXISTS otp_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    phone VARCHAR(20) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used BOOLEAN DEFAULT FALSE
 )
