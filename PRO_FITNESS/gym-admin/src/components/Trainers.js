@@ -6,7 +6,7 @@ import {
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 
-const EMPTY_FORM = { f_name:'', l_name:'', email:'', phone:'', address:'', password:'' };
+const EMPTY_FORM = { f_name:'', l_name:'', email:'', phone:'', address:'', password:'', role:'trainer'};
 const EMPTY_SLOT = { day_of_week:'monday', start_time:'09:00', end_time:'17:00' };
 
 /* ─── Slide-over Panel ─────────────────────────────────────── */
@@ -258,7 +258,7 @@ export default function Trainers() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async () => {
-    try { await deleteUser(deleteFor.id); fetchData(); }
+    try { await deleteUser(deleteFor.id); setTrainers(prev => prev.filter(t => t.id !== deleteFor.id)); }
     catch { alert('Failed to remove trainer.'); }
     finally { setDeleteFor(null); }
   };

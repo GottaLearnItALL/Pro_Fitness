@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { getToken, clearToken } from './auth';
 
-const BASE_URL = 'http://127.0.0.1:8000/api';
+// Relative base — requests go to the dev server's own origin and are
+// forwarded to the backend via the "proxy" field in package.json.
+// This avoids cross-origin/CORS failures during development.
+const BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -53,8 +56,11 @@ export const getMyMembership   = ()     => api.get('/memberships/me');       // 
 export const createMembership  = (data) => api.post('/memberships', data);
 
 // ── Membership Plans ─────────────────────────────────────────
-export const getMembershipPlans       = ()     => api.get('/membership_plans/');
-export const getMembershipPlansPublic = ()     => axios.get(`${BASE_URL}/membership_plans/`); // no auth needed
+export const getMembershipPlans       = ()         => api.get('/membership_plans/');
+export const getMembershipPlansPublic = ()         => axios.get(`${BASE_URL}/membership_plans/`); // no auth needed
+export const createMembershipPlan     = (data)     => api.post('/membership_plans/', data);
+export const updateMembershipPlan     = (id, data) => api.put(`/membership_plans/${id}`, data);
+export const deleteMembershipPlan     = (id)       => api.delete(`/membership_plans/${id}`);
 
 // ── Attendance ────────────────────────────────────────────────
 export const getAttendance  = ()     => api.get('/attendance');
@@ -66,5 +72,16 @@ export const getTrainers = () => api.get('/users/trainers/');
 // ── Chat ──────────────────────────────────────────────────────
 export const postChat       = (content) => api.post('/chat', { content });
 export const postPublicChat = (content) => axios.post(`${BASE_URL}/chat`, { content });
+
+// -- Forgot Password -----------------
+export const postFrogotPassword = (email) => api.post('/forgot_password', { email });
+
+// -- OTP Login -----------------------
+export const requestOtp = (phone) => api.post('/auth/request-otp', { phone });
+export const verifyOtp  = (phone, code) => api.post('/auth/verify-otp', { phone, code });
+
+// -- Reset Password ------------------
+export const resetPassword = (token, new_password) =>
+  axios.post(`${BASE_URL}/reset-password`, { token, new_password });
 
 export default api;

@@ -1,20 +1,32 @@
 {
-  "name": "gym-admin-portal",
-  "version": "1.0.0",
-  "description": "FitnessPro Gym Management Admin Portal",
+  "name": "gym-admin",
+  "version": "0.1.0",
   "private": true,
+  "proxy": "http://127.0.0.1:8000",
   "dependencies": {
-    "axios": "^1.6.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.13.2",
     "jwt-decode": "^4.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-scripts": "5.0.1",
+    "recharts": "^3.8.1",
+    "web-vitals": "^2.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
     "test": "react-scripts test",
+    "build": "react-scripts build",
     "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "browserslist": {
     "production": [

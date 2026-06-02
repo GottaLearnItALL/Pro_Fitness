@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getSessions, getUsers, getTrainerAvailability, addTrainerAvailability, postAttendance, updateSession } from '../api';
 import { getUserId, getUserName } from '../auth';
+import { fmtDate as _fmtDateTz, fmtTime as _fmtTimeTz } from '../timezone';
 import Modal from './Modal';
 import Chatbot from './Chatbot';
 import ProfileMenu from './ProfileMenu';
@@ -15,8 +16,8 @@ const STATUS_COLORS = {
   no_show:    { bg: 'rgba(136,136,136,0.15)', color: '#888'    },
 };
 
-function fmtDate(d) { return new Date(d).toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' }); }
-function fmtTime(d) { return new Date(d).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
+function fmtDate(d) { return _fmtDateTz(d, { weekday:'short', month:'short', day:'numeric' }); }
+function fmtTime(d) { return _fmtTimeTz(d); }
 
 function AttendanceModal({ session, users, onClose, onSaved }) {
   const [attStatus,  setAtt]   = useState('present');

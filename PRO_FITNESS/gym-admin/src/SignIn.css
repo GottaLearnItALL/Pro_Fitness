@@ -1,0 +1,706 @@
+/* ═══════════════════════════════════════════════════════════════
+   HAACHIKO FITNESS — Sign In / Auth Pages
+   Green wellness theme. Split layout: brand panel + form.
+   All classes prefixed with .si-
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Page layout: split left/right ── */
+.si-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-family: var(--hk-font);
+}
+
+/* ═══════════════════════════════════════════════════
+   LEFT PANEL — brand / hero
+   ═══════════════════════════════════════════════════ */
+.si-left {
+  position: relative;
+  background: var(--hk-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.si-left-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(30, 61, 26, 0.4) 0%,
+    rgba(45, 90, 39, 0.1) 60%,
+    rgba(30, 61, 26, 0.5) 100%
+  );
+  pointer-events: none;
+}
+
+.si-left-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 48px;
+}
+
+.si-left-logo {
+  width: 120px;
+  height: auto;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+}
+
+.si-left-title {
+  font-family: var(--hk-font);
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.si-left-tagline {
+  font-size: 16px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+/* ── Left panel: quotes layout ── */
+.si-left-quotes-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 60px 48px;
+}
+
+.si-left-brand-top {
+  text-align: center;
+}
+
+.si-left-brand-top .si-left-logo {
+  margin-bottom: 16px;
+}
+
+.si-left-brand-top .si-left-title {
+  margin-bottom: 0;
+}
+
+.si-quote-container {
+  text-align: center;
+  max-width: 360px;
+  transition: opacity 0.6s ease;
+}
+
+.si-quote-visible {
+  opacity: 1;
+}
+
+.si-quote-hidden {
+  opacity: 0;
+}
+
+.si-quote-text {
+  font-size: 20px;
+  font-style: italic;
+  color: #fff;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  font-weight: 300;
+}
+
+.si-quote-author {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RIGHT PANEL — form area
+   ═══════════════════════════════════════════════════ */
+.si-right {
+  background: var(--hk-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+}
+
+/* ── Back button ── */
+.si-back {
+  position: absolute;
+  top: 28px;
+  left: 36px;
+  background: transparent;
+  border: 1.5px solid var(--hk-border-light);
+  color: var(--hk-text-muted);
+  font-family: var(--hk-font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: var(--hk-radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.si-back:hover {
+  border-color: var(--hk-green);
+  color: var(--hk-green);
+}
+
+/* ── Card ── */
+.si-card {
+  width: 100%;
+  max-width: 400px;
+  animation: siSlideUp 0.35s ease-out;
+}
+
+@keyframes siSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Logo in card ── */
+.si-card-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.si-card-logo-img {
+  width: 44px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.si-card-brand {
+  font-family: var(--hk-font);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--hk-charcoal);
+  letter-spacing: 0.3px;
+}
+
+.si-card-sub-brand {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--hk-green);
+  font-weight: 600;
+}
+
+/* ── Title / subtitle ── */
+.si-title {
+  font-family: var(--hk-font);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--hk-charcoal);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.si-subtitle {
+  font-size: 14px;
+  color: var(--hk-text-muted);
+  margin-bottom: 32px;
+}
+
+/* ── Form ── */
+.si-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.si-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.si-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--hk-text-secondary);
+  font-weight: 600;
+}
+
+.si-input {
+  padding: 14px 16px;
+  background: var(--hk-white);
+  border: 1.5px solid rgba(0,0,0,0.1);
+  border-radius: var(--hk-radius-md);
+  color: var(--hk-charcoal);
+  font-family: var(--hk-font);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.si-input:focus {
+  border-color: var(--hk-green);
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.1);
+}
+
+.si-input::placeholder {
+  color: #b0b5bc;
+}
+
+.si-input-error {
+  border-color: var(--hk-danger) !important;
+}
+
+.si-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.si-field-err {
+  font-size: 12px;
+  color: var(--hk-danger);
+  margin-top: 2px;
+}
+
+/* ── Error banner ── */
+.si-error-banner {
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--hk-radius-md);
+  padding: 14px 18px;
+  color: var(--hk-danger);
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ── Forgot password row ── */
+.si-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -8px 0 0;
+}
+
+/* ── Links ── */
+.si-link {
+  background: transparent;
+  border: none;
+  color: var(--hk-green);
+  font-family: var(--hk-font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.si-link:hover {
+  color: var(--hk-green-dark);
+  text-decoration: underline;
+}
+
+/* ── Submit button ── */
+.si-submit {
+  width: 100%;
+  padding: 15px;
+  background: var(--hk-green);
+  border: none;
+  border-radius: var(--hk-radius-md);
+  color: #fff;
+  font-family: var(--hk-font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.si-submit:hover:not(:disabled) {
+  background: var(--hk-green-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--hk-green-glow);
+}
+
+.si-submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ── Spinner ── */
+.si-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Switch text ── */
+.si-switch {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 14px;
+  color: var(--hk-text-muted);
+}
+
+/* ── Reset success ── */
+.si-reset-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: var(--hk-radius-md);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--hk-text-secondary);
+}
+
+.si-reset-check {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--hk-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   LOGIN TABS (Password / OTP)
+   ═══════════════════════════════════════════════════ */
+
+.si-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--hk-radius-md);
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.si-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--hk-text-muted);
+  font-family: var(--hk-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.si-tab:hover {
+  color: var(--hk-charcoal);
+}
+
+.si-tab-active {
+  background: var(--hk-white);
+  color: var(--hk-green);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.si-tab svg {
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   OTP FLOW
+   ═══════════════════════════════════════════════════ */
+
+.si-field-hint {
+  font-size: 12px;
+  color: var(--hk-text-muted);
+  margin-top: 4px;
+}
+
+.si-otp-sent-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(45, 90, 39, 0.06);
+  border: 1px solid rgba(45, 90, 39, 0.12);
+  border-radius: var(--hk-radius-md);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--hk-text-secondary);
+  margin-bottom: 4px;
+}
+
+.si-otp-sent-info svg {
+  color: var(--hk-green);
+  flex-shrink: 0;
+}
+
+.si-otp-input {
+  font-size: 28px !important;
+  font-weight: 700;
+  letter-spacing: 12px;
+  text-align: center;
+  padding: 16px !important;
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+}
+
+.si-otp-input::placeholder {
+  letter-spacing: 12px;
+  font-weight: 400;
+  font-size: 28px;
+  color: #d0d5dc;
+}
+
+.si-otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+}
+
+/* Dev OTP display — yellow banner for testers */
+.si-dev-otp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--hk-radius-md);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--hk-text-secondary);
+}
+
+.si-dev-otp-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   REGISTER — wider card + form grid + sections
+   ═══════════════════════════════════════════════════ */
+
+.si-card-wide {
+  max-width: 520px;
+}
+
+.si-right:has(.si-card-wide) {
+  overflow-y: auto;
+  align-items: flex-start;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+/* ── Section divider labels ── */
+.si-section-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--hk-green);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ── Two-column form grid ── */
+.si-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.si-full {
+  grid-column: span 2;
+}
+
+/* ── Phone row (code + number) ── */
+.si-phone-row {
+  display: flex;
+  gap: 8px;
+}
+
+.si-phone-code {
+  width: 110px;
+  flex-shrink: 0;
+  padding-right: 4px !important;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.si-phone-number {
+  flex: 1;
+}
+
+/* ── Plan banner ── */
+.si-plan-banner {
+  background: rgba(45, 90, 39, 0.06);
+  border: 1px solid rgba(45, 90, 39, 0.15);
+  border-radius: var(--hk-radius-md);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.si-plan-banner-warn {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+.si-plan-name {
+  font-weight: 700;
+  color: var(--hk-green);
+  font-size: 15px;
+}
+
+.si-plan-name-warn {
+  color: var(--hk-danger);
+}
+
+.si-plan-price {
+  font-size: 13px;
+  color: var(--hk-text-muted);
+  margin-top: 2px;
+}
+
+.si-plan-change {
+  background: none;
+  border: none;
+  color: var(--hk-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: var(--hk-font);
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.si-plan-change:hover {
+  color: var(--hk-green);
+}
+
+/* ── Password strength indicator ── */
+.si-pw-strength {
+  margin-top: 10px;
+}
+
+.si-pw-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.si-pw-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.si-pw-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.si-pw-rules {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.si-pw-rule {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.si-pw-ok   { color: #22c55e; }
+.si-pw-fail { color: #b0b5bc; }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .si-page {
+    grid-template-columns: 1fr;
+  }
+
+  .si-left {
+    display: none;
+  }
+
+  .si-right {
+    padding: 80px 24px 40px;
+  }
+
+  .si-back {
+    top: 20px;
+    left: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .si-card,
+  .si-card-wide {
+    max-width: 100%;
+  }
+
+  .si-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .si-full {
+    grid-column: span 1;
+  }
+}

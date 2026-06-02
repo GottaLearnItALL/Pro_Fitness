@@ -3,17 +3,13 @@ import './App.css';
 
 import { getRole, isTokenValid, clearToken } from './auth';
 
-import LandingPage  from './components/LandingPage';
-import Login        from './components/Login';
-import Register     from './components/Register';
-import Header       from './components/Header';
-import Dashboard    from './components/Dashboard';
-import Schedule     from './components/Schedule';
-import Clients      from './components/Clients';
-import Trainers     from './components/Trainers';
-import Chatbot      from './components/Chatbot';
-import TrainerApp   from './components/TrainerApp';
-import ClientApp    from './components/ClientApp';
+import LandingPage    from './components/LandingPage';
+import Login          from './components/Login';
+import Register       from './components/Register';
+import ResetPassword  from './components/ResetPassword';
+import AdminApp       from './components/AdminApp';
+import TrainerApp     from './components/TrainerApp';
+import ClientApp      from './components/ClientApp';
 
 // view: 'landing' | 'login' | 'register' | 'admin' | 'trainer' | 'client'
 function roleToView(role) {
@@ -25,12 +21,16 @@ function roleToView(role) {
 
 export default function App() {
   const [view, setView]                   = useState('landing');
-  const [activeTab, setActiveTab]         = useState('dashboard');
   const [selectedPlan, setSelectedPlan]   = useState(null);
   const [goPricing, setGoPricing]         = useState(false);
 
-  // On mount: restore session if token is still valid
+  // On mount: check for reset token in URL, or restore session
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) {
+      setView('reset-password');
+      return;
+    }
     if (isTokenValid()) {
       setView(roleToView(getRole()));
     }
@@ -56,6 +56,18 @@ export default function App() {
         onLogin={()          => { setGoPricing(false); setView('login'); }}
         onSelectPlan={handleSelectPlan}
         scrollToPricing={goPricing}
+      />
+    );
+  }
+
+  // ── Reset Password ───────────────────────────────────────────
+  if (view === 'reset-password') {
+    return (
+      <ResetPassword
+        onGoLogin={() => {
+          window.history.replaceState({}, '', '/');
+          setView('login');
+        }}
       />
     );
   }
@@ -94,26 +106,5 @@ export default function App() {
   }
 
   // ── Admin panel ──────────────────────────────────────────────
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard setActiveTab={setActiveTab} />;
-      case 'schedule':  return <Schedule />;
-      case 'clients':   return <Clients />;
-      case 'trainers':  return <Trainers />;
-      default:          return <Dashboard setActiveTab={setActiveTab} />;
-    }
-  };
-
-  return (
-    <div className="app">
-      <div className="texture-overlay" />
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onLogout={handleLogout}
-      />
-      <main className="main-content">{renderContent()}</main>
-      <Chatbot />
-    </div>
-  );
+  return <AdminApp onLogout={handleLogout} />;
 }

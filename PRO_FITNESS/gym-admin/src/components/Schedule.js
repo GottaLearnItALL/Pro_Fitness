@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { getSessions, getUsers, createSession, getMemberships } from '../api';
 import Modal from './Modal';
 import { useBookingRefresh } from '../bookingEvent';
+import { getTimezone } from '../auth';
 
 const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
@@ -23,7 +24,12 @@ function formatWeekLabel(weekStart) {
   const end = new Date(weekStart);
   end.setDate(end.getDate() + 6);
   const opts = { month: 'short', day: 'numeric' };
-  return `${weekStart.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
+  const tz = getTimezone();
+  try {
+    return `${weekStart.toLocaleDateString('en-US', { timeZone: tz, ...opts })} – ${end.toLocaleDateString('en-US', { timeZone: tz, ...opts })}`;
+  } catch {
+    return `${weekStart.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
+  }
 }
 
 function Schedule() {

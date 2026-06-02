@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { getUsers, getSessions, getMemberships, getMembershipPlans, postAttendance, updateSession } from '../api';
 import Modal from './Modal';
 import { useBookingRefresh } from '../bookingEvent';
+import { fmtDate as fmtDateTz } from '../timezone';
 
 const STATUS_COLORS = {
   scheduled: { bg: 'rgba(212,175,135,0.15)', color: '#d4af87' },
@@ -38,7 +39,7 @@ function AttendanceModal({ session, users, onClose, onSaved }) {
       {error && <div className="error-banner">{error}</div>}
       <div style={{ padding:'14px 18px', background:'rgba(212,175,135,0.07)', borderRadius:10, border:'1px solid rgba(212,175,135,0.15)', marginBottom:20 }}>
         <div style={{ fontWeight:600, marginBottom:4 }}>{client ? `${client.first_name} ${client.last_name}` : `Client #${session.client_id}`}</div>
-        <div style={{ fontSize:13, color:'#888' }}>with {trainer ? `${trainer.first_name} ${trainer.last_name}` : `Trainer #${session.trainer_id}`} · {new Date(session.scheduled_at).toLocaleDateString([], { month:'short', day:'numeric', year:'numeric' })}</div>
+        <div style={{ fontSize:13, color:'#888' }}>with {trainer ? `${trainer.first_name} ${trainer.last_name}` : `Trainer #${session.trainer_id}`} · {fmtDateTz(session.scheduled_at, { month:'short', day:'numeric', year:'numeric' })}</div>
       </div>
       <div className="form-grid">
         <div className="form-group"><label className="form-label">Client Attendance</label><select className="form-select" value={attendanceStatus} onChange={e => setAttendanceStatus(e.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select></div>
@@ -141,7 +142,7 @@ export default function Dashboard({ setActiveTab }) {
                 return (
                   <span key={i} className="admin-alert-tag">
                     {client ? `${client.first_name} ${client.last_name}` : `Client #${m.client_id}`}
-                    {plan ? ` · ${plan.name}` : ''} · expires {new Date(m.end_date).toLocaleDateString([], { month:'short', day:'numeric' })}
+                    {plan ? ` · ${plan.name}` : ''} · expires {fmtDateTz(m.end_date, { month:'short', day:'numeric' })}
                   </span>
                 );
               })}
@@ -164,7 +165,7 @@ export default function Dashboard({ setActiveTab }) {
                 const sc = STATUS_COLORS[s.status] || STATUS_COLORS.scheduled;
                 return (
                   <div key={i} className="session-item">
-                    <span className="session-time">{new Date(s.scheduled_at).toLocaleDateString([], { month:'short', day:'numeric' })}</span>
+                    <span className="session-time">{fmtDateTz(s.scheduled_at, { month:'short', day:'numeric' })}</span>
                     <div className="session-info">
                       <div className="session-client">{getName(s.client_id)}</div>
                       <div className="session-trainer">with {getName(s.trainer_id)}</div>
